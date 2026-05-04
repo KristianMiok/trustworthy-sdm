@@ -231,3 +231,40 @@ def iter_pilot_cells() -> Iterator[CellID]:
     for algorithm in ("random_forest", "xgboost"):
         for level in PILOT_LOWACC_LEVELS:
             yield CellID(entity, algorithm, track, axis="lowacc", level=level)
+
+
+# ---------------------------------------------------------------------------
+# Full-panel cell iteration
+
+# Contamination levels for the full Grid B sweep on the lowacc axis.
+# Level 0 (benchmark) is excluded — Path 2 uses the companion paper's
+# saved deterministic benchmark surface from disk as the reference target.
+FULL_PANEL_LOWACC_LEVELS: tuple[int, ...] = (3, 10, 20)
+
+
+def iter_full_panel_cells() -> Iterator[CellID]:
+    """Full panel: 8 dual-axis entities x 2 algorithms x 3 tracks x 3 lowacc levels.
+
+    Total: 144 cells x 30 replicates = 4,320 fits. With one cell per Slurm
+    array task and ~13 sec/fit throughput, each array task takes ~6.5 min;
+    144 array tasks finish in well under an hour given enough cluster slots.
+
+    Cell ordering is deterministic so that array index N maps to the same
+    cell across every invocation. Order: entity (alphabetical) -> algorithm ->
+    track -> level.
+    """
+    for entity in DUAL_AXIS_ENTITIES:
+        for algorithm in ("random_forest", "xgboost"):
+            for track in TRACKS:
+                for level in FULL_PANEL_LOWACC_LEVELS:
+                    yield CellID(entity, algorithm, track, axis="lowacc", level=level)
+
+
+def cell_at_index(cells: list[CellID], index: int) -> CellID:
+    """Return cells[index], raising a clear error if out of range."""
+    if index < 0 or index >= len(cells):
+        raise IndexError(
+            f"array index {index} out of range; "
+            f"valid indices are 0..{len(cells) - 1} for this cell list"
+        )
+    return cells[index]

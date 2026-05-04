@@ -19,6 +19,8 @@ import trustworthy_sdm
 from trustworthy_sdm.io import (
     DUAL_AXIS_ENTITIES,
     GridBPaths,
+    cell_at_index,
+    iter_full_panel_cells,
     iter_pilot_cells,
     load_merged_metrics,
     replicate_seeds,
@@ -48,10 +50,27 @@ def inspect_main(argv: list[str] | None = None) -> int:
         required=True,
         help="Path to the results root that contains grid_b_full/, grid_b_merged/, etc.",
     )
+    parser.add_argument(
+        "--print-manifest",
+        choices=["pilot", "full"],
+        default=None,
+        help="Print the cell list for the given panel and exit.",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)
     log = logging.getLogger("inspect")
+
+    if args.print_manifest is not None:
+        cells = (
+            list(iter_pilot_cells())
+            if args.print_manifest == "pilot"
+            else list(iter_full_panel_cells())
+        )
+        for i, cell in enumerate(cells):
+            print(f"{i:4d}  {cell.short()}")
+        log.info("manifest: %d cells (%s)", len(cells), args.print_manifest)
+        return 0
 
     log.info("trustworthy_sdm version: %s", trustworthy_sdm.__version__)
 
@@ -129,9 +148,17 @@ def regenerate_main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--cells",
-        choices=["pilot"],
+        choices=["pilot", "full"],
         default="pilot",
-        help="Which set of cells to regenerate. Currently only 'pilot' is wired.",
+        help="Which set of cells to regenerate. 'pilot' = 6 cells (1 entity); "
+             "'full' = 144 cells (8 entities x 2 algos x 3 tracks x 3 levels).",
+    )
+    parser.add_argument(
+        "--array-index",
+        type=int,
+        default=None,
+        help="If set, regenerate only the single cell at this index in the "
+             "selected cell list. Used by Slurm array jobs.",
     )
     parser.add_argument(
         "--dry-run",
@@ -152,8 +179,20 @@ def regenerate_main(argv: list[str] | None = None) -> int:
     from trustworthy_sdm.regen import regenerate_cells
 
     paths = GridBPaths(root=args.results_root.expanduser().resolve())
-    cells = list(iter_pilot_cells()) if args.cells == "pilot" else []
-    log.info("regenerating %d cells", len(cells))
+
+    if args.cells == "pilot":
+        cells = list(iter_pilot_cells())
+    elif args.cells == "full":
+        cells = list(iter_full_panel_cells())
+    else:
+        raise ValueError(f"unknown --cells value: {args.cells}")
+
+    if args.array_index is not None:
+        single = cell_at_index(cells, args.array_index)
+        log.info("array mode: index %d -> %s", args.array_index, single.short())
+        cells = [single]
+    else:
+        log.info("regenerating %d cells", len(cells))
 
     summary = regenerate_cells(
         cells=cells,
@@ -165,7 +204,14 @@ def regenerate_main(argv: list[str] | None = None) -> int:
     )
 
     # Write the run summary to disk so we have a record of what happened.
-    summary_path = args.out_root / "regeneration_summary.csv"
+    # In array mode (single cell), use a per-task filename so concurrent
+    # writes from sibling array tasks do not clobber each other.
+    if args.array_index is not None:
+        summary_path = (
+            args.out_root / "summaries" / f"summary_{args.array_index:04d}.csv"
+        )
+    else:
+        summary_path = args.out_root / "regeneration_summary.csv"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary.to_csv(summary_path, index=False)
     log.info("wrote summary to %s", summary_path)
