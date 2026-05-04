@@ -20,9 +20,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Lazy import: we import inside the function so that ``trustworthy-sdm-inspect``
-# can run on a machine that does not have sdm_robustness installed.
-# (The actual regeneration commands obviously do require it.)
 from trustworthy_sdm.io import (
     CellID,
     GridBPaths,
@@ -40,7 +37,10 @@ log = logging.getLogger(__name__)
 class RegenerationInputs:
     """Everything ``fit_cv_cell`` needs that is NOT derived from (cell, replicate, seed).
 
-    Loading these once per (entity, track) avoids repeating I/O for every replicate.
+    Loading these once per (entity, axis) avoids repeating I/O for every replicate.
+    The contamination pool depends on axis: snap_pool for snapping, lowacc_pool
+    for lowacc. Benchmark cells (axis="benchmark") are run with snap_pool but
+    level=0, so the pool is mathematically inert.
     """
 
     benchmark: pd.DataFrame
@@ -59,32 +59,91 @@ def replicate_surface_path(
 
 
 # ---------------------------------------------------------------------------
-# Inputs assembly
-#
-# IMPLEMENTATION PENDING. We need to find the function in the upstream repo
-# (or one of its scripts) that splits the master CSV into (benchmark,
-# contamination pool, accessible area) for a given entity/axis. The
-# orchestrator-level code lives outside ``sdm_robustness/pipeline/``. Once
-# located, ``assemble_inputs`` becomes a thin wrapper around it.
-#
-# See ``scripts/inspect_orchestrator.sh`` for the probe script.
+# Master-table cache (load once per process)
+
+_MASTER_CACHE: dict[Path, pd.DataFrame] = {}
+
+
+def _load_master_cached(master_csv: Path) -> pd.DataFrame:
+    """Load the 115k-row master table once per process."""
+    p = master_csv.resolve()
+    if p not in _MASTER_CACHE:
+        from sdm_robustness.io import load_master_table  # type: ignore[import-not-found]
+
+        log.info("loading master table from %s", p)
+        info_or_df = load_master_table(p)
+        # load_master_table may return either a DataFrame or a (DataFrame, info)
+        # tuple depending on the upstream version. Handle both defensively.
+        if isinstance(info_or_df, tuple):
+            df, _info = info_or_df
+        else:
+            df = info_or_df
+        log.info("master table: %d rows, %d cols", len(df), df.shape[1])
+        _MASTER_CACHE[p] = df
+    return _MASTER_CACHE[p]
+
+
+# ---------------------------------------------------------------------------
+# Inputs assembly — wired to upstream _prepare_entity_data
 
 def assemble_inputs(
     entity: str,
-    track: str,
+    track: str,                # noqa: ARG001  (kept for API symmetry; unused)
     axis: str,
     master_csv: Path,
 ) -> RegenerationInputs:
-    """Build the three DataFrames that ``fit_cv_cell`` consumes for one entity.
+    """Build the three DataFrames that ``fit_cv_cell`` consumes for one entity/axis.
 
-    .. warning::
-        Implementation pending. Run ``scripts/inspect_orchestrator.sh`` on
-        VEGA to locate the upstream entity-data-prep function, then wire
-        this function to call it.
+    Wraps upstream ``_prepare_entity_data``. For Grid B, ``n_experiment`` is the
+    full benchmark size (no subsampling); upstream's runner sets this with the
+    comment "Grid B: full benchmark, no cap" at runner.py:308.
+
+    Parameters
+    ----------
+    entity : str
+        Canonical entity name, e.g. "Austropotamobius torrentium (pooled)".
+    track : str
+        Spatial track. Currently unused inside ``fit_cv_cell``'s data-prep step
+        (track-specific column selection happens inside the function), but kept
+        in the signature for clarity at call sites.
+    axis : str
+        ``"snapping"`` or ``"lowacc"``. Determines which contamination pool is
+        returned. ``"benchmark"`` is normalised to ``"snapping"`` upstream.
+    master_csv : Path
+        Path to ``combined_data_true_master.csv``.
     """
-    raise NotImplementedError(
-        "assemble_inputs is pending: needs upstream orchestrator inspection. "
-        "Run scripts/inspect_orchestrator.sh on VEGA, paste output to planning thread."
+    # Upstream is private API (`_prepare_entity_data`) — we accept the
+    # stability tradeoff because it's far cleaner than reimplementing
+    # entity-data prep ourselves and risking a silent divergence from the
+    # companion paper's behaviour.
+    from sdm_robustness.execution.runner import _prepare_entity_data  # type: ignore[import-not-found]
+
+    if axis not in {"snapping", "lowacc", "benchmark"}:
+        raise ValueError(f"axis must be 'snapping', 'lowacc', or 'benchmark'; got {axis!r}")
+
+    master = _load_master_cached(master_csv)
+    prepared = _prepare_entity_data(master, entity)
+
+    # Pick the contamination pool that matches this axis. Benchmark cells use
+    # snap_pool by convention (it's mathematically inert at level=0).
+    pool_key = "snap_pool" if axis in ("snapping", "benchmark") else "lowacc_pool"
+    contamination_pool: pd.DataFrame = prepared[pool_key]
+    benchmark: pd.DataFrame = prepared["benchmark"]
+    accessible_area: pd.DataFrame = prepared["accessible_area"]
+
+    log.info(
+        "%s [%s]: benchmark_n=%d, %s_pool_n=%d, accessible_area_n=%d",
+        entity, axis, len(benchmark), pool_key, len(contamination_pool), len(accessible_area),
+    )
+
+    # Grid B convention: use the full benchmark, no cap.
+    n_experiment = len(benchmark)
+
+    return RegenerationInputs(
+        benchmark=benchmark,
+        contamination_pool=contamination_pool,
+        accessible_area=accessible_area,
+        n_experiment=n_experiment,
     )
 
 
@@ -100,33 +159,7 @@ def regenerate_cell(
     skip_existing: bool = True,
     dry_run: bool = False,
 ) -> list[dict]:
-    """Regenerate the 30 replicate surfaces for one cell.
-
-    Parameters
-    ----------
-    cell : CellID
-        Cell descriptor.
-    inputs : RegenerationInputs
-        Pre-loaded benchmark / pool / accessible_area DataFrames.
-    seeds_df : DataFrame
-        From ``replicate_seeds(metrics, cell)``. Columns ``replicate``, ``seed``.
-    out_root : Path
-        Root for replicate surface output. Surfaces go to
-        ``{out_root}/{cell.short()}/rep_NN.parquet``.
-    skip_existing : bool
-        If True, replicates whose output already exists are not recomputed.
-    dry_run : bool
-        If True, only logs what would be done; does not call ``fit_cv_cell``.
-
-    Returns
-    -------
-    list[dict]
-        One summary dict per replicate, with keys
-        ``cell``, ``replicate``, ``seed``, ``status``, ``wall_seconds``, ``output_path``.
-    """
-    # Lazy-import the upstream dependency so this module can be imported in
-    # contexts (CI, doctest, ``trustworthy-sdm-inspect``) where sdm_robustness
-    # may not be installed.
+    """Regenerate the 30 replicate surfaces for one cell."""
     from sdm_robustness.pipeline.core import fit_cv_cell  # type: ignore[import-not-found]
 
     cell_out = out_root / cell.short()
@@ -150,10 +183,6 @@ def regenerate_cell(
             summaries.append({**base, "status": "dry_run", "wall_seconds": 0.0})
             continue
 
-        # Benchmark cells use level=0 and an axis label that fit_cv_cell
-        # recognises. The axis only affects which contamination pool is
-        # consulted; at level=0 contamination is the empty set so the choice
-        # is mathematically irrelevant. We canonicalise on "snapping".
         upstream_axis = cell.axis if cell.axis != "benchmark" else "snapping"
 
         t0 = time.time()
@@ -172,7 +201,7 @@ def regenerate_cell(
                 n_experiment=inputs.n_experiment,
                 return_artifacts=True,
             )
-        except Exception as exc:  # noqa: BLE001 - we log the full traceback
+        except Exception as exc:  # noqa: BLE001 - we log full traceback below
             log.exception("fit_cv_cell failed for %s rep=%d", cell.short(), rep)
             summaries.append({
                 **base,
@@ -199,9 +228,6 @@ def regenerate_cell(
             })
             continue
 
-        # The surface is aligned to inputs.accessible_area's row order. The
-        # canonical sub-catchment id column is 'subc_id'. Persist as parquet
-        # matching the schema of the existing single-prediction surfaces.
         df = pd.DataFrame({
             "subc_id": inputs.accessible_area["subc_id"].values,
             "predicted_probability": np.asarray(surface, dtype=float),
@@ -225,18 +251,12 @@ def regenerate_cells(
     skip_existing: bool = True,
     dry_run: bool = False,
 ) -> pd.DataFrame:
-    """Regenerate replicate surfaces for many cells, with input caching by entity.
-
-    Inputs only depend on ``(entity, track, axis)``, so we cache them across
-    (algorithm, level) combinations within the same entity.
-    """
+    """Regenerate replicate surfaces for many cells, with input caching by entity+axis."""
     metrics = load_merged_metrics(paths)
     summaries: list[dict] = []
     inputs_cache: dict[tuple[str, str, str], RegenerationInputs] = {}
 
     for cell in cells:
-        # The contamination pool depends on the axis; at benchmark (axis=benchmark
-        # or level=0) it is unused, but we still pass a pool for type compatibility.
         cache_axis = "snapping" if cell.axis == "benchmark" else cell.axis
         key = (cell.entity, cell.track, cache_axis)
         if key not in inputs_cache:
