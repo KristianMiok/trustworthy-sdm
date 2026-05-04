@@ -11,7 +11,9 @@ package. Keep that boundary thin.
 
 from __future__ import annotations
 
+import contextlib
 import logging
+import os
 import time
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -122,7 +124,17 @@ def assemble_inputs(
         raise ValueError(f"axis must be 'snapping', 'lowacc', or 'benchmark'; got {axis!r}")
 
     master = _load_master_cached(master_csv)
-    prepared = _prepare_entity_data(master, entity)
+
+    # Upstream's _prepare_entity_data calls load_final_panel(), which reads
+    # 'config/final_panel.csv' as a RELATIVE path. We chdir into the upstream
+    # repo root for the duration of the call so the relative read resolves.
+    # The upstream package location is the parent of the imported runner module.
+    from sdm_robustness.execution import runner as _runner_mod  # type: ignore[import-not-found]
+    upstream_root = Path(_runner_mod.__file__).resolve().parents[3]
+    log.debug("entering upstream root for panel CSV resolution: %s", upstream_root)
+
+    with contextlib.chdir(upstream_root):
+        prepared = _prepare_entity_data(master, entity)
 
     # Pick the contamination pool that matches this axis. Benchmark cells use
     # snap_pool by convention (it's mathematically inert at level=0).
