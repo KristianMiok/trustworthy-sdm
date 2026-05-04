@@ -38,6 +38,9 @@ trustworthy-sdm/
 
 ## Setup — Mac (development)
 
+> **Either pip+venv or uv works.** The instructions below use pip+venv to match the previous repo. If you prefer uv, the equivalent commands are: `uv venv && uv pip install -e ../sdm-robustness && uv pip install -e ".[dev]"`. The committed `uv.lock` is harmless when not using uv.
+
+
 ```bash
 # 1. Clone this repo and the previous repo side-by-side
 git clone git@github.com:KristianMiok/trustworthy-sdm.git
@@ -124,7 +127,7 @@ Then open `notebooks/01_pilot_coverage.py` (a percent-script that PyCharm will t
 
 3. **Diagnostic.** Within-entity, conformal interval width on held-out spatial folds is monotonic in contamination level. Proposed as an ad-hoc red flag for practitioners without ground truth.
 
-See `docs/concept_notes.docx` for the full plan.
+See `docs/concept_notes.docx` for the full plan, and `docs/paper_a_pilot_additions.md` for operational additions agreed with Lucian after his review.
 
 ## Methodological note on the ensemble baseline
 

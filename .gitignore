@@ -57,3 +57,6 @@ logs/
 # --- Local scratch
 scratch/
 tmp/
+# --- uv / additional Python tooling
+.venv-*/
+.python-version
