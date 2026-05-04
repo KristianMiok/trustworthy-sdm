@@ -32,21 +32,27 @@ UPSTREAM=${UPSTREAM:-/ceph/hpc/home/miokk/sdm-robustness}
 cd "$REPO"
 mkdir -p logs
 
+# Use the venv's Python explicitly so we never depend on PATH resolution
+# inside the Slurm batch shell. Match the user-site isolation we tested
+# manually with PYTHONNOUSERSITE=1.
+export PYTHONNOUSERSITE=1
+PY="$REPO/.venv/bin/python"
+
 echo "==> environment"
 module load Python/3.12.3-GCCcore-13.3.0
-source .venv/bin/activate
-python --version
-python -c "import sdm_robustness; print('sdm_robustness:', sdm_robustness.__file__)"
-python -c "import trustworthy_sdm; print('trustworthy_sdm:', trustworthy_sdm.__version__)"
+"$PY" --version
+"$PY" -c "import sdm_robustness; print('sdm_robustness:', sdm_robustness.__file__)"
+"$PY" -c "import trustworthy_sdm; print('trustworthy_sdm:', trustworthy_sdm.__version__)"
+"$PY" -c "import xgboost; print('xgboost:', xgboost.__version__)"
 
 echo "==> inspect (sanity check)"
-trustworthy-sdm-inspect --results-root "$UPSTREAM/results" -v
+"$REPO/.venv/bin/trustworthy-sdm-inspect" --results-root "$UPSTREAM/results" -v
 
 echo "==> regenerate (pilot)"
 export TS_RESULTS_ROOT="$UPSTREAM/results"
 export TS_MASTER_CSV="$UPSTREAM/data/combined_data_true_master.csv"
 export TS_OUT_ROOT="$REPO/data/replicate_surfaces"
-python scripts/pilot_regenerate.py
+"$PY" scripts/pilot_regenerate.py
 
 echo "==> done"
 ls -la "$TS_OUT_ROOT"
