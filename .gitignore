@@ -1,0 +1,59 @@
+# --- Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Virtual envs
+.venv/
+venv/
+env/
+
+# --- Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# --- IDE
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# --- Project data (pulled from VEGA, never commit)
+data/replicate_surfaces/
+data/grid_b_full/
+data/grid_b_merged/
+data/task5c_benchmark_stability_array/
+data/master/
+data/*.parquet
+data/*.csv
+!data/.gitkeep
+!data/README.md
+
+# --- Generated outputs
+results/
+figures/
+*.png
+*.pdf
+*.svg
+!docs/**/*.png
+!docs/**/*.pdf
+
+# --- Slurm
+slurm-*.out
+*.sbatch.out
+logs/
+
+# --- Local scratch
+scratch/
+tmp/

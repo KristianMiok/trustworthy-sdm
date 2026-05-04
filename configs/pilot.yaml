@@ -1,0 +1,26 @@
+# Pilot configuration for the first regeneration run.
+# Currently this file is documentation; the pilot uses hard-coded cells in
+# trustworthy_sdm.io.iter_pilot_cells(). Once the panel expands beyond the
+# pilot we'll add a config-driven cell selector.
+
+pilot:
+  entity: "Austropotamobius torrentium (pooled)"
+  entity_dir: "Austropotamobius_torrentium_pooled"
+  track: "combined"
+  algorithms: ["random_forest", "xgboost"]
+  cells:
+    - { axis: benchmark, level: 0 }
+    - { axis: lowacc, level: 20 }
+  n_replicates: 30
+
+paths:
+  vega:
+    upstream_repo: "/ceph/hpc/home/miokk/sdm-robustness"
+    results_root: "/ceph/hpc/home/miokk/sdm-robustness/results"
+    master_csv: "/ceph/hpc/home/miokk/sdm-robustness/data/combined_data_true_master.csv"
+    out_root: "/ceph/hpc/home/miokk/trustworthy-sdm/data/replicate_surfaces"
+  mac:
+    upstream_repo: "../sdm-robustness"
+    results_root: "./data/results"
+    master_csv: "./data/master/combined_data_true_master.csv"
+    out_root: "./data/replicate_surfaces"
