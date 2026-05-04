@@ -2,7 +2,7 @@
 #SBATCH --job-name=ts_pilot_torrentium
 #SBATCH --output=logs/ts_pilot_torrentium_%j.out
 #SBATCH --error=logs/ts_pilot_torrentium_%j.err
-#SBATCH --time=02:00:00
+#SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --partition=cpu
@@ -13,11 +13,13 @@
 # torrentium pooled) on the combined-track, with both RF and XGBoost, at
 # benchmark (level 0) and lowacc max (level 20).
 #
-# Output: 4 cells × 30 replicates = 120 parquet files in
+# Pilot scope (Path 2): A. torrentium combined RF+XGB, lowacc L3+L10+L20.
+# Output: 6 cells x 30 replicates = 180 parquet files in
 #   /ceph/hpc/home/miokk/trustworthy-sdm/data/replicate_surfaces/
 #
-# Estimated wall time per the previous chat: ~70 min for 4 cells × 30 reps.
-# The 2 h limit gives generous headroom.
+# Estimated wall time: ~105 minutes (180 fits x ~35 sec each plus overhead).
+# The 3 h limit gives headroom. Single-job execution; full-panel parallelism
+# happens in slurm/full_panel_array.sbatch (separate, not yet built).
 #
 # After this completes successfully, scale up by adapting this script for
 # the full 8-entity panel (96 cells) — likely as a Slurm array.

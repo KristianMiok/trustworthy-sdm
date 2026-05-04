@@ -55,8 +55,14 @@ def test_cellid_unknown_entity_raises() -> None:
 
 def test_pilot_cells_count_and_uniqueness() -> None:
     cells = list(iter_pilot_cells())
-    assert len(cells) == 4
-    assert len({c.short() for c in cells}) == 4
-    # All four cells should be the same entity and track
+    # 2 algorithms x 3 lowacc levels = 6 cells
+    assert len(cells) == 6
+    assert len({c.short() for c in cells}) == 6
+    # All cells are A. torrentium combined lowacc
     assert all(c.entity == "Austropotamobius torrentium (pooled)" for c in cells)
     assert all(c.track == "combined" for c in cells)
+    assert all(c.axis == "lowacc" for c in cells)
+    # Levels are 3, 10, 20
+    assert {c.level for c in cells} == {3, 10, 20}
+    # Both algorithms appear
+    assert {c.algorithm for c in cells} == {"random_forest", "xgboost"}

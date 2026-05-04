@@ -209,10 +209,25 @@ def replicate_seeds(metrics: pd.DataFrame, cell: CellID) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # Iteration helpers
 
+# Pilot: full lowacc contamination curve for one entity.
+# Six cells = 2 algorithms (RF, XGBoost) x 3 contamination levels (3, 10, 20).
+# We do NOT regenerate benchmark replicates in the pilot — Path 2 uses the
+# companion paper's saved deterministic benchmark surface from disk as the
+# reference target. Benchmark regeneration is a full-panel concern.
+PILOT_LOWACC_LEVELS: tuple[int, ...] = (3, 10, 20)
+
+
 def iter_pilot_cells() -> Iterator[CellID]:
-    """The 4 cells of the pilot regeneration: torrentium combined RF+XGB, bench+L20."""
+    """Pilot: A. torrentium combined RF+XGB at lowacc levels 3, 10, 20.
+
+    Six cells x 30 replicates = 180 fits. ~105 minutes wall on a single node
+    in one Slurm job. Output: 180 parquet files in data/replicate_surfaces/.
+
+    Benchmark surface comes from disk (companion paper's saved single-prediction
+    surface) — see GridBPaths.existing_surface(cell, kind="benchmark").
+    """
     entity = "Austropotamobius torrentium (pooled)"
     track = "combined"
     for algorithm in ("random_forest", "xgboost"):
-        yield CellID(entity, algorithm, track, axis="benchmark", level=0)
-        yield CellID(entity, algorithm, track, axis="lowacc", level=20)
+        for level in PILOT_LOWACC_LEVELS:
+            yield CellID(entity, algorithm, track, axis="lowacc", level=level)
