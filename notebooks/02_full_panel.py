@@ -188,19 +188,29 @@ print(f"saved {FIG_DIR / 'F3_algorithm_contrast.png'}")
 
 
 # %% [markdown]
-# ## F4 — asymmetric mismatch by benchmark suitability decile (Lucian's point 2)
+# ## F4 — asymmetric mismatch by benchmark suitability bin (Lucian's point 2)
 #
-# At L=10, bin pixels by benchmark suitability (deciles) and ask: what fraction
+# At L=10, bin pixels by benchmark suitability and ask: what fraction
 # of contaminated-ensemble means are ABOVE the benchmark in each bin?
 # A flat 0.5 line means symmetric; >0.5 in low-suitability bins is the
 # spatial-bias signature.
+#
+# Per Lucian's May 2026 review: 5-bin headline figure (cleaner trend),
+# 10-bin supplementary version (noise itself is informative about where
+# the asymmetry breaks down). Cross-entity averaging is deliberately NOT
+# done — entity-by-entity overlay shows replication.
 
 # %%
-print("running asymmetry analysis at L10 (this also takes a minute)...")
-asym = asymmetry_panel(SURFACES_ROOT, GRID_B_PATHS, level=10)
-asym.to_csv(FIG_DIR / "asymmetry_L10.csv", index=False)
+from trustworthy_sdm.analysis import asymmetry_panel_dual_resolution
 
-if len(asym) > 0:
+print("running asymmetry analysis at L10 (5-bin and 10-bin)...")
+asym_5, asym_10 = asymmetry_panel_dual_resolution(SURFACES_ROOT, GRID_B_PATHS, level=10)
+asym_5.to_csv(FIG_DIR / "asymmetry_L10_5bin.csv", index=False)
+asym_10.to_csv(FIG_DIR / "asymmetry_L10_10bin.csv", index=False)
+
+
+def _plot_asymmetry(asym: pd.DataFrame, n_bins: int, fig_path: Path, *, suffix: str) -> None:
+    """Render an asymmetry figure with the given bin resolution."""
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5), sharey=True)
     for ax, algo in zip(axes, algos, strict=True):
         sub = asym[asym.algorithm == algo]
@@ -213,21 +223,35 @@ if len(asym) > 0:
                     "o-", color=palette[k], alpha=0.7, markersize=4,
                     label=short_entity(entity) if algo == "xgboost" else None)
         ax.axhline(0.5, color="grey", linestyle="--", linewidth=1)
-        ax.set_xlabel("benchmark suitability (decile midpoint)")
+        ax.set_xlabel(f"benchmark suitability ({n_bins}-bin midpoint)")
         ax.set_title(algo.replace("_", " ").title())
         ax.set_ylim(0, 1.02)
     axes[0].set_ylabel("fraction of pixels with ensemble_mean > benchmark")
     axes[1].legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=8,
                    frameon=False)
     fig.suptitle(
-        "F4: asymmetric over-prediction at low-suitability pixels (L=10, averaged across tracks)",
+        f"F4{suffix}: asymmetric over-prediction at low-suitability pixels "
+        f"(L=10, {n_bins}-bin, tracks averaged within entity)",
         fontsize=11,
     )
     fig.tight_layout()
-    fig.savefig(FIG_DIR / "F4_asymmetry_by_decile.png", dpi=150, bbox_inches="tight")
-    print(f"saved {FIG_DIR / 'F4_asymmetry_by_decile.png'}")
+    fig.savefig(fig_path, dpi=150, bbox_inches="tight")
+    print(f"saved {fig_path}")
+
+
+if len(asym_5) > 0:
+    _plot_asymmetry(asym_5, n_bins=5,
+                    fig_path=FIG_DIR / "F4_asymmetry_by_bin_5.png",
+                    suffix=" (headline)")
 else:
-    print("WARNING: asymmetry panel was empty")
+    print("WARNING: 5-bin asymmetry panel was empty")
+
+if len(asym_10) > 0:
+    _plot_asymmetry(asym_10, n_bins=10,
+                    fig_path=FIG_DIR / "F4_asymmetry_by_bin_10_supplementary.png",
+                    suffix=" (supplementary)")
+else:
+    print("WARNING: 10-bin asymmetry panel was empty")
 
 
 # %% [markdown]

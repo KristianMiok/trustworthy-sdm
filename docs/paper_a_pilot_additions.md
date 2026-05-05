@@ -77,3 +77,63 @@ Decision parked until pilot data lands. If contamination-aware corrector
 turns out to be careful-application-of-existing-methods, it slots in as
 Paper A Section 5. If it grows into something genuinely novel for non-iid
 spatial settings, spin it out as a standalone ML-venue paper.
+
+---
+
+# Post-full-panel revisions (May 2026, after Lucian's full-panel review)
+
+## Abstract — F5 reframe must land here, not just Discussion
+
+Per Lucian: practitioners read abstracts literally and apply rules
+unchecked. The diagnostic claim no longer supports a universal "wider
+intervals = contamination" rule. The abstract must explicitly constrain
+this:
+
+> Width tracks contamination level **within-entity**, supporting use as a
+> drift indicator when an entity-specific baseline is available (e.g.,
+> width computed on the cleanest available data, monitored as new records
+> accumulate). Absolute width values are **not transferable across
+> entities** — at fixed contamination level, width varies ~7× across
+> our panel without consistent dependence on sample size or niche
+> breadth. Practitioners should not interpret a single absolute width
+> value as a contamination indicator without an entity-specific reference.
+
+This phrasing or close to it goes in the abstract, not buried in
+Discussion. Better to constrain the claim ourselves than have a reviewer
+do it for us.
+
+## Discussion — upstream_only paragraph stub
+
+The `upstream_only` track produces qualitatively different miscalibration
+behaviour from `local_only` and `combined`. Coverage is non-monotonic
+(some entities stuck near 1.0, others collapse to 0.4–0.6, lines cross
+at intermediate contamination levels). Widths are roughly a quarter of
+the local_only / combined widths.
+
+Mechanistic reading (provisional, single-system): upstream-only
+predictors describe a smaller environmental space than local or combined
+predictors. Replicate predictions converge on similar values (hence
+narrow intervals), but those predictions are systematically biased; this
+yields coverage that is either spuriously high (when the bias direction
+aligns with the benchmark) or catastrophically low (when it doesn't),
+without a stable contamination-dependent trend.
+
+We treat this as a single-system observation. Establishing it as a
+general property of restricted-predictor SDMs would require a second
+system with comparably restrictive predictors — outside this paper's
+scope. The observation belongs in the Discussion as: *"track choice
+interacts with calibration in ways that warrant further investigation."*
+
+## Paper B implication (carry-over note)
+
+F5's outcome narrows what a standalone Paper B could claim. Width-alone
+as a cross-entity contamination detector is no longer viable —
+within-entity drift detection still is, but that's a much smaller claim
+than "detect contamination without ground truth across systems." The
+correction angle (vanilla conformal vs contamination-aware) remains
+intact for Paper B; the detection-without-ground-truth angle does not.
+
+When scoping the conformal calibration analysis (next build), keep the
+framing tight: **conformal as a fix for ensemble miscalibration**, not
+"conformal width as a contamination signal." Avoid implying that
+cross-entity width comparisons could replace the calibration step.

@@ -226,3 +226,24 @@ def benchmark_n_per_entity(metrics: pd.DataFrame) -> dict[str, int]:
         if len(n) > 0:
             out[entity] = int(n.iloc[0])
     return out
+
+
+
+def asymmetry_panel_dual_resolution(
+    surfaces_root: Path,
+    paths: GridBPaths,
+    level: int = 10,
+    on_error: str = "log",
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Run the asymmetry analysis at both 5-bin and 10-bin resolutions.
+
+    Returns ``(headline_5bin, supplementary_10bin)``.
+
+    Per Lucian's review (May 2026): 5-bin is the clean headline figure;
+    10-bin retains noise-as-information for the supplementary. Cross-entity
+    averaging is deliberately NOT done — the entity-by-entity overlay shows
+    replication, which is the methodological point.
+    """
+    five = asymmetry_panel(surfaces_root, paths, level=level, n_bins=5, on_error=on_error)
+    ten = asymmetry_panel(surfaces_root, paths, level=level, n_bins=10, on_error=on_error)
+    return five, ten
