@@ -50,4 +50,4 @@ def test_analyse_panel_count(panel_available) -> None:
     assert len(df) == 144, f"expected 144 cells, got {len(df)}"
     # All status sane
     assert (df["coverage"].between(0, 1)).all()
-    assert (df["n_replicates"] == 30).all()
+    assert bool((df["n_replicates"] == 30).all())
