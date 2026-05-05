@@ -247,3 +247,71 @@ def asymmetry_panel_dual_resolution(
     five = asymmetry_panel(surfaces_root, paths, level=level, n_bins=5, on_error=on_error)
     ten = asymmetry_panel(surfaces_root, paths, level=level, n_bins=10, on_error=on_error)
     return five, ten
+
+
+
+# ---------------------------------------------------------------------------
+# Conformal calibration over the full panel
+
+def evaluate_panel_conformal(
+    surfaces_root: Path,
+    paths: GridBPaths,
+    entities: tuple[str, ...] = DUAL_AXIS_ENTITIES,
+    algorithms: tuple[str, ...] = ("random_forest", "xgboost"),
+    tracks: tuple[str, ...] = TRACKS,
+    levels: tuple[int, ...] = FULL_PANEL_LOWACC_LEVELS,
+    on_error: str = "log",
+) -> pd.DataFrame:
+    """Run LOBO conformal evaluation over every cell in the panel.
+
+    Returns a long-format DataFrame with one row per cell. Columns:
+        entity, algorithm, track, level,
+        n_pixels_total, n_basins,
+        coverage_uncorrected, coverage_conformal,
+        median_width_uncorrected, median_width_conformal,
+        median_q_hat,
+        coverage_gap_pre, coverage_gap_post,   # = 0.95 - coverage
+        width_inflation_factor                  # corr / unc
+
+    Errors during a single cell are logged (not fatal) so a single bad cell
+    does not abort the panel. Set ``on_error='raise'`` to abort on first
+    error.
+    """
+    from dataclasses import asdict
+
+    from trustworthy_sdm.conformal import evaluate_cell_conformal
+    from trustworthy_sdm.io import CellID
+
+    rows: list[dict] = []
+    for entity in entities:
+        for algorithm in algorithms:
+            for track in tracks:
+                for level in levels:
+                    cell = CellID(entity, algorithm, track,
+                                  axis="lowacc", level=level)
+                    try:
+                        result = evaluate_cell_conformal(
+                            cell, surfaces_root, paths)
+                        # Drop fold_coverages tuple — too large for table
+                        d = asdict(result)
+                        d.pop("fold_coverages", None)
+                        rows.append(d)
+                    except Exception as exc:
+                        if on_error == "raise":
+                            raise
+                        log.exception("conformal evaluation failed for %s",
+                                      cell.short())
+
+    df = pd.DataFrame(rows)
+    if len(df) == 0:
+        return df
+
+    # Convenience derived columns for figures
+    df["coverage_gap_pre"] = 1 - ALPHA - df["coverage_uncorrected"]
+    df["coverage_gap_post"] = 1 - ALPHA - df["coverage_conformal"]
+    # Avoid divide-by-zero on the rare cell with width near 0
+    df["width_inflation_factor"] = (
+        df["median_width_conformal"]
+        / df["median_width_uncorrected"].replace(0.0, np.nan)
+    )
+    return df
