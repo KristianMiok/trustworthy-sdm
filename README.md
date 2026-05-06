@@ -2,7 +2,7 @@
 
 Calibrated uncertainty for species distribution models under occurrence-data contamination.
 
-This repository implements a calibration analysis for ensemble prediction intervals in species distribution models (SDMs), and applies split conformal prediction with leave-one-basin-out (LOBO) spatial calibration folds to restore near-nominal interval coverage under realistic data contamination. The repository accompanies the manuscript *"Ensemble uncertainty fails under spatial bias in species distribution models — split conformal prediction restores calibrated coverage."*
+This repository implements a calibration analysis for ensemble prediction intervals in species distribution models (SDMs), and applies split conformal prediction with leave-one-basin-out (LOBO) spatial calibration folds to restore near-nominal interval coverage under realistic data contamination. The repository accompanies the manuscript *Ensemble uncertainty fails under spatial bias in species distribution models — split conformal prediction restores calibrated coverage.*
 
 The code regenerates per-replicate ensemble surfaces from the factorial benchmark of the companion methods paper, computes empirical coverage of contaminated-ensemble intervals against deterministic reference predictions, applies LOBO conformal correction, and produces all figures reported in the manuscript.
 
@@ -16,41 +16,50 @@ Across an eight-entity panel of crayfish SDMs fitted under three predictor track
 
 Full numerical results are in `figures/panel_summary.csv` and `figures/panel_conformal.csv`.
 
-## Repository layouttrustworthy-sdm/
-├── pyproject.toml
-├── README.md
-├── LICENSE
-├── src/trustworthy_sdm/
-│   ├── io.py                         # Loaders for the panel and benchmark surfaces
-│   ├── regen.py                      # Per-replicate surface regeneration
-│   ├── analysis.py                   # Coverage, asymmetry, panel-level evaluation
-│   ├── conformal.py                  # Split conformal calibration with LOBO folds
-│   └── cli.py                        # Command-line entry points
-├── notebooks/
-│   ├── 02_full_panel.py              # Uncorrected coverage analysis (Figures 2, 5, 6, S1)
-│   └── 03_conformal_calibration.py   # Conformal correction analysis (Figures 1, 3, 4)
-├── slurm/
-│   ├── pilot_torrentium.sbatch       # Single-entity pilot
-│   └── full_panel_array.sbatch       # 144-cell array job
-├── tests/
-└── scripts/
-└── generate_basin_lookups.py     # Per-entity basin_id mapping
+## Repository layout
+
+    trustworthy-sdm/
+    ├── pyproject.toml
+    ├── README.md
+    ├── LICENSE
+    ├── src/trustworthy_sdm/
+    │   ├── io.py                       (loaders for the panel and benchmark surfaces)
+    │   ├── regen.py                    (per-replicate surface regeneration)
+    │   ├── analysis.py                 (coverage, asymmetry, panel-level evaluation)
+    │   ├── conformal.py                (split conformal calibration with LOBO folds)
+    │   └── cli.py                      (command-line entry points)
+    ├── notebooks/
+    │   ├── 02_full_panel.py            (uncorrected coverage analysis: Figures 2, 5, 6, S1)
+    │   └── 03_conformal_calibration.py (conformal correction analysis: Figures 1, 3, 4)
+    ├── slurm/
+    │   ├── pilot_torrentium.sbatch     (single-entity pilot)
+    │   └── full_panel_array.sbatch     (144-cell array job)
+    ├── tests/
+    └── scripts/
+        └── generate_basin_lookups.py   (per-entity basin_id mapping)
 
 ## Installation
 
 The package depends on the upstream `sdm-robustness` codebase (the companion paper's repository), pinned to a specific commit for reproducibility.
 
-```bash1. Clone alongside the upstream repository
-git clone https://github.com/KristianMiok/trustworthy-sdm.git
-git clone https://github.com/KristianMiok/sdm-robustness.git2. Install
-cd trustworthy-sdm
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -e ../sdm-robustness
-pip install -e ".[dev]"3. Verify
-python -c "from sdm_robustness.pipeline.core import fit_cv_cell; print('upstream OK')"
-trustworthy-sdm-inspect --help
+Clone both repositories side by side:
+
+    git clone https://github.com/KristianMiok/trustworthy-sdm.git
+    git clone https://github.com/KristianMiok/sdm-robustness.git
+
+Then install in a virtual environment:
+
+    cd trustworthy-sdm
+    python3.12 -m venv .venv
+    source .venv/bin/activate
+    pip install --upgrade pip
+    pip install -e ../sdm-robustness
+    pip install -e ".[dev]"
+
+Verify the installation:
+
+    python -c "from sdm_robustness.pipeline.core import fit_cv_cell; print('upstream OK')"
+    trustworthy-sdm-inspect --help
 
 Tested on Python 3.12 and 3.14, on macOS and Linux. The full pipeline runs in approximately ten minutes on a 32-core HPC partition; per-cell wall time is approximately two minutes for surface regeneration and one second for conformal evaluation.
 
@@ -60,27 +69,28 @@ Three steps reproduce every figure and tabulated value in the manuscript.
 
 ### 1. Regenerate the ensemble surfaces
 
-The companion paper saves only aggregate metrics. Per-replicate predicted-suitability surfaces are required for our calibration analysis and are regenerated here from the companion paper's frozen seeds.
+The companion paper saves only aggregate metrics. Per-replicate predicted-suitability surfaces are required for the calibration analysis and are regenerated here from the companion paper's frozen seeds.
 
-```bashSingle command regenerates all 4,320 surfaces (144 cells × 30 replicates)
-trustworthy-sdm-regenerate --cells full
+A single command regenerates all 4,320 surfaces (144 cells × 30 replicates):
+
+    trustworthy-sdm-regenerate --cells full
 
 On an HPC cluster, the equivalent Slurm array job:
 
-```bashsbatch slurm/full_panel_array.sbatch
+    sbatch slurm/full_panel_array.sbatch
 
 Output is written to `data/replicate_surfaces/`.
 
 ### 2. Run the analyses
 
-```bashpython notebooks/02_full_panel.py
-python notebooks/03_conformal_calibration.py
+    python notebooks/02_full_panel.py
+    python notebooks/03_conformal_calibration.py
 
 Output: cell-level summary tables in `figures/panel_summary.csv` and `figures/panel_conformal.csv`, and all figures referenced in the manuscript.
 
 ### 3. Verify with tests
 
-```bashpytest tests/
+    pytest tests/
 
 All tests should pass on a fresh checkout with regenerated surfaces. Tests verify the conformal mathematics, the panel iteration, and end-to-end coverage on a held-out cell.
 
@@ -92,13 +102,13 @@ The analysis depends on three external resources:
 - **The Hydrography90m and GeoFRESH platforms** for network-aware predictor extraction.
 - **The companion paper's panel definitions and deterministic benchmark surfaces**, distributed through that paper's archive.
 
-For convenience during development, the `scripts/generate_basin_lookups.py` utility can pre-compute the per-entity basin lookups required for LOBO calibration. The lookup parquet files are small (~1 MB total) and can be cached locally to avoid repeated calls to the upstream data-preparation pipeline.
+For convenience during development, the `scripts/generate_basin_lookups.py` utility can pre-compute the per-entity basin lookups required for LOBO calibration. The lookup parquet files are small (approximately 1 MB total) and can be cached locally to avoid repeated calls to the upstream data-preparation pipeline.
 
 ## Citation
 
 If you use this code, please cite the manuscript:
 
-> *Ensemble uncertainty fails under spatial bias in species distribution models — split conformal prediction restores calibrated coverage.* (in preparation)
+> *Ensemble uncertainty fails under spatial bias in species distribution models — split conformal prediction restores calibrated coverage.* In preparation.
 
 ## License
 
