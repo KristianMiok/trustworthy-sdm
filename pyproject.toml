@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Calibrated uncertainty for species distribution models under occurrence-data contamination (Paper A follow-up to Pârvulescu, Petko & Miok)"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "TBD" }
+license = { text = "MIT" }
 authors = [{ name = "Kristian Miok" }]
 
 # We do NOT list sdm-robustness here because it lives outside any package
@@ -25,6 +25,8 @@ dependencies = [
     "seaborn>=0.13",
     "tqdm>=4.66",
     "pyyaml>=6.0",
+    "loguru>=0.7.3",
+    "xgboost>=3.2.0",
 ]
 
 [project.optional-dependencies]
