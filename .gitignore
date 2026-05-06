@@ -60,3 +60,5 @@ tmp/
 # --- uv / additional Python tooling
 .venv-*/
 .python-version
+manuscript_*.docx
+cover_letter*.docx
