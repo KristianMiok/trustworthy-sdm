@@ -63,3 +63,4 @@ tmp/
 manuscript_*.docx
 cover_letter*.docx
 patch_*.py
+make_*.py
