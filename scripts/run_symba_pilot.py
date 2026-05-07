@@ -73,6 +73,7 @@ def run_cell(
     out_root: Path,
     *,
     skip_existing: bool = True,
+    replicates_filter: set[int] | None = None,
 ) -> list[dict]:
     """Run all replicates for one cell. Mirrors regen.regenerate_cell."""
     from sdm_robustness.pipeline.core import fit_cv_cell  # type: ignore[import-not-found]
@@ -84,6 +85,8 @@ def run_cell(
     for _, row in seeds_df.iterrows():
         rep = int(row["replicate"])
         seed = int(row["seed"])
+        if replicates_filter is not None and rep not in replicates_filter:
+            continue
         out_path = replicate_surface_path(out_root, cell, rep)
         base = {
             "cell": cell.short(),
@@ -172,6 +175,10 @@ def main(argv: list[str] | None = None) -> int:
         "--no-skip-existing", action="store_true",
         help="Re-run replicates even if output parquet already exists.",
     )
+    parser.add_argument(
+        "--array-index", type=int, default=None,
+        help="Slurm array task index; restricts to one (cell, replicate) unit.",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args(argv)
 
@@ -198,6 +205,20 @@ def main(argv: list[str] | None = None) -> int:
     log.info("out_root:      %s", out_root)
     log.info("n_replicates:  %d", args.n_replicates)
     log.info("cells:         %s", [(c["axis"], c["level"]) for c in cells_to_run])
+
+    array_filter = None
+    if args.array_index is not None:
+        n_per_cell = args.n_replicates
+        total_units = len(cells_to_run) * n_per_cell
+        if not (0 <= args.array_index < total_units):
+            log.error("array-index %d out of range [0, %d)", args.array_index, total_units)
+            return 2
+        cell_idx, rep_idx = divmod(args.array_index, n_per_cell)
+        only = cells_to_run[cell_idx]
+        cells_to_run = [only]
+        array_filter = {(only["axis"], only["level"]): {rep_idx}}
+        log.info("array-index %d -> axis=%s level=%d replicate=%d",
+                 args.array_index, only["axis"], only["level"], rep_idx)
 
     all_summaries: list[dict] = []
     for cell_spec in cells_to_run:
@@ -226,12 +247,16 @@ def main(argv: list[str] | None = None) -> int:
         seeds_df.to_csv(seeds_path, index=False)
         log.info("seeds logged to %s", seeds_path)
 
+        replicates_filter = None
+        if array_filter is not None:
+            replicates_filter = array_filter.get((cell_spec["axis"], cell_spec["level"]))
         summaries = run_cell(
             cell=cell,
             inputs=inputs,
             seeds_df=seeds_df,
             out_root=out_root,
             skip_existing=not args.no_skip_existing,
+            replicates_filter=replicates_filter,
         )
         all_summaries.extend(summaries)
 
