@@ -51,7 +51,7 @@ module load Python/3.12.3-GCCcore-13.3.0
 
 echo "==> run_symba_pilot --array-index ${SLURM_ARRAY_TASK_ID}"
 "$PY" scripts/run_symba_pilot.py \
-    --master-csv "$UPSTREAM/data/raw/combined_data_true_master.csv" \
+    --master-csv "$UPSTREAM/data/combined_data_true_master.csv" \
     --out-root "$REPO/data/replicate_surfaces" \
     --array-index "$SLURM_ARRAY_TASK_ID" \
     -v
