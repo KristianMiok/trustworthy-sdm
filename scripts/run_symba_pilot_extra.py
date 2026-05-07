@@ -1,34 +1,43 @@
-"""Generate RF + XGBoost benchmark/L0 surfaces for A. torrentium combined.
+"""Extra Symba cells for A. torrentium combined: L3 and L10.
 
-Mirrors run_symba_pilot.py structure but with two algorithms instead of one,
-fixed at axis=benchmark, level=0. Fills the gap that iter_pilot_cells()
-doesn't enumerate.
+Run alongside the original run_symba_pilot.py to fill in the
+intermediate contamination levels for the calibration comparison.
+Same seed-minting strategy and output format.
 """
 from __future__ import annotations
 
 import argparse
 import logging
 import sys
+import time
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+
 from trustworthy_sdm.io import CellID
-from trustworthy_sdm.regen import assemble_inputs
+from trustworthy_sdm.regen import (
+    RegenerationInputs,
+    assemble_inputs,
+    replicate_surface_path,
+)
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from scripts.run_symba_pilot import mint_seeds, run_cell
+from scripts.run_symba_pilot import mint_seeds, run_cell  # reuse helpers
 
-log = logging.getLogger("rfxgb-l0")
+log = logging.getLogger("symba-pilot-extra")
 
 ENTITY = "Austropotamobius torrentium (pooled)"
 TRACK = "combined"
+ALGORITHM = "symba"
 N_REPLICATES = 30
 MASTER_SEED = 20260507
 
-# 2 algorithms x 1 cell (benchmark/L0) = 60 work units
+# The two contamination levels we still need.
 CELLS = [
-    {"algorithm": "random_forest", "axis": "benchmark", "level": 0},
-    {"algorithm": "xgboost",       "axis": "benchmark", "level": 0},
+    {"axis": "lowacc", "level": 3},
+    {"axis": "lowacc", "level": 10},
 ]
 
 
@@ -56,26 +65,25 @@ def main() -> int:
         n_per_cell = N_REPLICATES
         total_units = len(cells_to_run) * n_per_cell
         if not (0 <= args.array_index < total_units):
-            log.error("array-index %d out of range [0, %d)",
-                      args.array_index, total_units)
+            log.error("array-index %d out of range [0, %d)", args.array_index, total_units)
             return 2
         cell_idx, rep_idx = divmod(args.array_index, n_per_cell)
         only = cells_to_run[cell_idx]
         cells_to_run = [only]
-        array_filter = {(only["algorithm"], only["axis"], only["level"]): {rep_idx}}
-        log.info("array-index %d -> %s axis=%s level=%d replicate=%d",
-                 args.array_index, only["algorithm"],
-                 only["axis"], only["level"], rep_idx)
+        array_filter = {(only["axis"], only["level"]): {rep_idx}}
+        log.info("array-index %d -> axis=%s level=%d replicate=%d",
+                 args.array_index, only["axis"], only["level"], rep_idx)
 
     log.info("entity:        %s", ENTITY)
+    log.info("algorithm:     %s", ALGORITHM)
     log.info("track:         %s", TRACK)
-    log.info("cells:         %s",
-             [(c["algorithm"], c["axis"], c["level"]) for c in cells_to_run])
+    log.info("cells:         %s", [(c["axis"], c["level"]) for c in cells_to_run])
 
+    all_summaries: list[dict] = []
     for cell_spec in cells_to_run:
         cell = CellID(
             entity=ENTITY,
-            algorithm=cell_spec["algorithm"],
+            algorithm=ALGORITHM,
             track=TRACK,
             axis=cell_spec["axis"],
             level=cell_spec["level"],
@@ -96,9 +104,7 @@ def main() -> int:
 
         replicates_filter = None
         if array_filter is not None:
-            replicates_filter = array_filter.get(
-                (cell_spec["algorithm"], cell_spec["axis"], cell_spec["level"])
-            )
+            replicates_filter = array_filter.get((cell_spec["axis"], cell_spec["level"]))
         summaries = run_cell(
             cell=cell,
             inputs=inputs,
@@ -107,6 +113,7 @@ def main() -> int:
             skip_existing=True,
             replicates_filter=replicates_filter,
         )
+        all_summaries.extend(summaries)
         ok = sum(1 for s in summaries if s["status"] == "ok")
         log.info("cell done: ok=%d", ok)
 
