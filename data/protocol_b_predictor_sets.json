@@ -1,0 +1,491 @@
+{
+  "_meta": {
+    "vif_threshold": 10.0,
+    "max_keep": 12,
+    "pa_ratio": 1.0,
+    "seed": 20260617,
+    "axis": "lowacc",
+    "missing_threshold_pct": 70.0,
+    "note": "VIF-reduced predictor sets for GLM/GAM consensus members, computed on CLEAN benchmark (level=0), frozen across contamination levels. RF/XGBoost use the full track set. Missingness threshold relaxed to 70% (vs upstream default 30%) so ~63%-complete catchment predictors are imputed, not dropped."
+  },
+  "Procambarus clarkii (alien)|||local_only": {
+    "entity": "Procambarus clarkii (alien)",
+    "track": "local_only",
+    "n_full": 211,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI8",
+      "l_CLI9",
+      "l_LAC2",
+      "l_LAC5",
+      "l_LAC9",
+      "l_LAC13",
+      "l_SOL48",
+      "l_SOL49",
+      "l_SOL52",
+      "l_TOP109",
+      "l_TOP61",
+      "l_TOP97"
+    ]
+  },
+  "Procambarus clarkii (alien)|||upstream_only": {
+    "entity": "Procambarus clarkii (alien)",
+    "track": "upstream_only",
+    "n_full": 84,
+    "n_reduced": 12,
+    "predictors": [
+      "u_LAC3",
+      "u_LAC6",
+      "u_LAC8",
+      "u_LAC9",
+      "u_LAC10",
+      "u_LAC13",
+      "u_LAC15",
+      "u_LAC17",
+      "u_LAC18",
+      "u_LAC19",
+      "u_SOL19",
+      "u_TOP63"
+    ]
+  },
+  "Procambarus clarkii (alien)|||combined": {
+    "entity": "Procambarus clarkii (alien)",
+    "track": "combined",
+    "n_full": 294,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI8",
+      "l_LAC5",
+      "l_LAC6",
+      "l_LAC15",
+      "l_SOL18",
+      "l_SOL52",
+      "l_TOP107",
+      "u_LAC9",
+      "u_LAC13",
+      "u_LAC18",
+      "u_LAC22",
+      "u_TOP135"
+    ]
+  },
+  "Pacifastacus leniusculus (alien)|||local_only": {
+    "entity": "Pacifastacus leniusculus (alien)",
+    "track": "local_only",
+    "n_full": 216,
+    "n_reduced": 12,
+    "predictors": [
+      "l_LAC4",
+      "l_LAC8",
+      "l_LAC9",
+      "l_LAC10",
+      "l_LAC11",
+      "l_LAC18",
+      "l_SOL12",
+      "l_SOL57",
+      "l_SOL50",
+      "l_TOP109",
+      "l_TOP93",
+      "l_TOP97"
+    ]
+  },
+  "Pacifastacus leniusculus (alien)|||upstream_only": {
+    "entity": "Pacifastacus leniusculus (alien)",
+    "track": "upstream_only",
+    "n_full": 86,
+    "n_reduced": 12,
+    "predictors": [
+      "u_LAC3",
+      "u_LAC4",
+      "u_LAC6",
+      "u_LAC9",
+      "u_LAC10",
+      "u_LAC11",
+      "u_LAC13",
+      "u_LAC19",
+      "u_LAC20",
+      "u_LAC21",
+      "u_SOL31",
+      "u_TOP11"
+    ]
+  },
+  "Pacifastacus leniusculus (alien)|||combined": {
+    "entity": "Pacifastacus leniusculus (alien)",
+    "track": "combined",
+    "n_full": 301,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI29",
+      "l_LAC4",
+      "l_LAC9",
+      "l_LAC10",
+      "l_LAC16",
+      "l_SOL1",
+      "l_SOL36",
+      "l_TOP93",
+      "l_TOP97",
+      "u_LAC19",
+      "u_LAC20",
+      "u_TOP39"
+    ]
+  },
+  "Faxonius limosus (alien)|||local_only": {
+    "entity": "Faxonius limosus (alien)",
+    "track": "local_only",
+    "n_full": 207,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI8",
+      "l_CLI32",
+      "l_CLI49",
+      "l_TOP128",
+      "l_LAC2",
+      "l_LAC3",
+      "l_LAC8",
+      "l_LAC10",
+      "l_SOL37",
+      "l_SOL49",
+      "l_TOP9",
+      "l_TOP107"
+    ]
+  },
+  "Faxonius limosus (alien)|||upstream_only": {
+    "entity": "Faxonius limosus (alien)",
+    "track": "upstream_only",
+    "n_full": 85,
+    "n_reduced": 12,
+    "predictors": [
+      "u_LAC2",
+      "u_LAC3",
+      "u_LAC4",
+      "u_LAC6",
+      "u_LAC9",
+      "u_LAC12",
+      "u_LAC13",
+      "u_LAC19",
+      "u_LAC21",
+      "u_TOP111",
+      "u_TOP79",
+      "u_TOP135"
+    ]
+  },
+  "Faxonius limosus (alien)|||combined": {
+    "entity": "Faxonius limosus (alien)",
+    "track": "combined",
+    "n_full": 291,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI32",
+      "l_CLI36",
+      "l_LAC6",
+      "l_LAC9",
+      "l_TOP109",
+      "l_TOP112",
+      "l_TOP9",
+      "l_TOP107",
+      "u_LAC3",
+      "u_LAC13",
+      "u_LAC19",
+      "u_TOP111"
+    ]
+  },
+  "Astacus astacus|||local_only": {
+    "entity": "Astacus astacus",
+    "track": "local_only",
+    "n_full": 209,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI36",
+      "l_CLI57",
+      "l_TOP125",
+      "l_LAC3",
+      "l_LAC13",
+      "l_LAC16",
+      "l_LAC19",
+      "l_SOL18",
+      "l_SOL32",
+      "l_TOP62",
+      "l_TOP93",
+      "l_TOP107"
+    ]
+  },
+  "Astacus astacus|||upstream_only": {
+    "entity": "Astacus astacus",
+    "track": "upstream_only",
+    "n_full": 81,
+    "n_reduced": 12,
+    "predictors": [
+      "u_CLI59",
+      "u_LAC3",
+      "u_LAC8",
+      "u_LAC9",
+      "u_LAC14",
+      "u_LAC16",
+      "u_LAC19",
+      "u_LAC21",
+      "u_SOL31",
+      "u_SOL51",
+      "u_TOP105",
+      "u_TOP63"
+    ]
+  },
+  "Astacus astacus|||combined": {
+    "entity": "Astacus astacus",
+    "track": "combined",
+    "n_full": 289,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI36",
+      "l_CLI57",
+      "l_LAC13",
+      "l_LAC16",
+      "l_LAC19",
+      "l_SOL18",
+      "l_SOL32",
+      "l_TOP112",
+      "l_TOP93",
+      "l_TOP107",
+      "u_LAC3",
+      "u_SOL31"
+    ]
+  },
+  "Procambarus clarkii (native)|||local_only": {
+    "entity": "Procambarus clarkii (native)",
+    "track": "local_only",
+    "n_full": 196,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI29",
+      "l_CLI32",
+      "l_LAC3",
+      "l_LAC4",
+      "l_LAC7",
+      "l_LAC8",
+      "l_LAC11",
+      "l_LAC18",
+      "l_SOL26",
+      "l_TOP49",
+      "l_TOP93",
+      "l_TOP97"
+    ]
+  },
+  "Procambarus clarkii (native)|||upstream_only": {
+    "entity": "Procambarus clarkii (native)",
+    "track": "upstream_only",
+    "n_full": 81,
+    "n_reduced": 12,
+    "predictors": [
+      "u_CLI35",
+      "u_TOP126",
+      "u_LAC3",
+      "u_LAC5",
+      "u_LAC8",
+      "u_LAC9",
+      "u_LAC11",
+      "u_LAC15",
+      "u_LAC19",
+      "u_SOL19",
+      "u_TOP11",
+      "u_TOP63"
+    ]
+  },
+  "Procambarus clarkii (native)|||combined": {
+    "entity": "Procambarus clarkii (native)",
+    "track": "combined",
+    "n_full": 276,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI29",
+      "l_LAC4",
+      "l_LAC8",
+      "l_LAC18",
+      "l_TOP118",
+      "l_TOP93",
+      "l_TOP97",
+      "l_TOP139",
+      "u_LAC7",
+      "u_LAC9",
+      "u_TOP112",
+      "u_TOP11"
+    ]
+  },
+  "Pontastacus leptodactylus (pooled)|||local_only": {
+    "entity": "Pontastacus leptodactylus (pooled)",
+    "track": "local_only",
+    "n_full": 208,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI8",
+      "l_CLI36",
+      "l_LAC2",
+      "l_LAC6",
+      "l_LAC9",
+      "l_LAC10",
+      "l_LAC13",
+      "l_SOL1",
+      "l_SOL18",
+      "l_SOL28",
+      "l_TOP132",
+      "l_TOP118"
+    ]
+  },
+  "Pontastacus leptodactylus (pooled)|||upstream_only": {
+    "entity": "Pontastacus leptodactylus (pooled)",
+    "track": "upstream_only",
+    "n_full": 85,
+    "n_reduced": 12,
+    "predictors": [
+      "u_LAC2",
+      "u_LAC4",
+      "u_LAC6",
+      "u_LAC10",
+      "u_LAC13",
+      "u_LAC15",
+      "u_LAC19",
+      "u_LAC20",
+      "u_SOL19",
+      "u_SOL35",
+      "u_TOP113",
+      "u_TOP63"
+    ]
+  },
+  "Pontastacus leptodactylus (pooled)|||combined": {
+    "entity": "Pontastacus leptodactylus (pooled)",
+    "track": "combined",
+    "n_full": 292,
+    "n_reduced": 12,
+    "predictors": [
+      "l_LAC9",
+      "l_SOL1",
+      "l_SOL28",
+      "l_TOP9",
+      "l_TOP49",
+      "l_TOP107",
+      "u_LAC2",
+      "u_LAC4",
+      "u_LAC13",
+      "u_LAC19",
+      "u_LAC21",
+      "u_SOL19"
+    ]
+  },
+  "Austropotamobius torrentium (pooled)|||local_only": {
+    "entity": "Austropotamobius torrentium (pooled)",
+    "track": "local_only",
+    "n_full": 210,
+    "n_reduced": 12,
+    "predictors": [
+      "l_LAC2",
+      "l_LAC11",
+      "l_LAC15",
+      "l_LAC19",
+      "l_LAC20",
+      "l_SOL1",
+      "l_SOL20",
+      "l_SOL33",
+      "l_TOP17",
+      "l_TOP61",
+      "l_TOP97",
+      "l_TOP138"
+    ]
+  },
+  "Austropotamobius torrentium (pooled)|||upstream_only": {
+    "entity": "Austropotamobius torrentium (pooled)",
+    "track": "upstream_only",
+    "n_full": 83,
+    "n_reduced": 12,
+    "predictors": [
+      "u_LAC2",
+      "u_LAC4",
+      "u_LAC7",
+      "u_LAC9",
+      "u_LAC13",
+      "u_LAC18",
+      "u_LAC19",
+      "u_LAC20",
+      "u_TOP112",
+      "u_TOP114",
+      "u_TOP11",
+      "u_TOP19"
+    ]
+  },
+  "Austropotamobius torrentium (pooled)|||combined": {
+    "entity": "Austropotamobius torrentium (pooled)",
+    "track": "combined",
+    "n_full": 291,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI36",
+      "l_LAC19",
+      "l_LAC20",
+      "l_SOL20",
+      "l_SOL33",
+      "l_TOP93",
+      "l_TOP137",
+      "u_LAC8",
+      "u_LAC14",
+      "u_LAC18",
+      "u_SOL51",
+      "u_TOP11"
+    ]
+  },
+  "Austropotamobius fulcisianus (pooled)|||local_only": {
+    "entity": "Austropotamobius fulcisianus (pooled)",
+    "track": "local_only",
+    "n_full": 207,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI29",
+      "l_LAC8",
+      "l_LAC11",
+      "l_LAC20",
+      "l_SOL10",
+      "l_SOL20",
+      "l_SOL48",
+      "l_SOL33",
+      "l_SOL52",
+      "l_TOP41",
+      "l_TOP61",
+      "l_TOP102"
+    ]
+  },
+  "Austropotamobius fulcisianus (pooled)|||upstream_only": {
+    "entity": "Austropotamobius fulcisianus (pooled)",
+    "track": "upstream_only",
+    "n_full": 80,
+    "n_reduced": 12,
+    "predictors": [
+      "u_LAC3",
+      "u_LAC8",
+      "u_LAC9",
+      "u_LAC11",
+      "u_LAC18",
+      "u_LAC19",
+      "u_LAC21",
+      "u_LAC22",
+      "u_SOL31",
+      "u_SOL51",
+      "u_TOP110",
+      "u_TOP114"
+    ]
+  },
+  "Austropotamobius fulcisianus (pooled)|||combined": {
+    "entity": "Austropotamobius fulcisianus (pooled)",
+    "track": "combined",
+    "n_full": 286,
+    "n_reduced": 12,
+    "predictors": [
+      "l_CLI60",
+      "l_TOP127",
+      "l_LAC3",
+      "l_LAC9",
+      "l_SOL11",
+      "l_SOL17",
+      "l_SOL48",
+      "l_TOP116",
+      "l_TOP97",
+      "u_LAC7",
+      "u_TOP110",
+      "u_TOP113"
+    ]
+  }
+}
