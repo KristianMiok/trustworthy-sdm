@@ -34,6 +34,24 @@ sns.set_context("notebook")
 TRACKS = ["local_only", "upstream_only", "combined"]
 LEVELS = [3, 10, 20]
 
+# Entities whose upstream predictors are >=70% complete (no material imputation).
+# Used for the robustness figure that shows the directional + coverage patterns
+# hold independently of the upstream gap-filling.
+FULL_UPSTREAM_ENTITIES = [
+    "Pacifastacus leniusculus (alien)",
+    "Faxonius limosus (alien)",
+    "Astacus astacus",
+    "Austropotamobius torrentium (pooled)",
+]
+
+import argparse  # noqa: E402
+_ap = argparse.ArgumentParser()
+_ap.add_argument("--full-upstream-only", action="store_true",
+                 help="render robustness figures using only the 4 full-upstream entities")
+_args, _ = _ap.parse_known_args()
+ENTITY_SUBSET = FULL_UPSTREAM_ENTITIES if _args.full_upstream_only else None
+SUFFIX = "_robustness_full_upstream" if _args.full_upstream_only else ""
+
 
 def short_entity(name: str) -> str:
     base = name.split(" (")[0]
@@ -50,6 +68,9 @@ asym5 = pd.read_csv(FIG_DIR / "asymmetry_protocol_b_5bin.csv")
 asym10 = pd.read_csv(FIG_DIR / "asymmetry_protocol_b_10bin.csv")
 
 ents = sorted(summary.entity.unique())
+if ENTITY_SUBSET is not None:
+    ents = [e for e in ents if e in ENTITY_SUBSET]
+    print(f"robustness mode: {len(ents)} full-upstream entities")
 palette = sns.color_palette("tab10", n_colors=len(ents))
 
 
@@ -77,8 +98,8 @@ def plot_asymmetry(asym: pd.DataFrame, n_bins: int, out_name: str, suffix: str) 
 
 
 # ---- PB_F4 keystone (5-bin) + supplementary (10-bin) ----
-plot_asymmetry(asym5, 5, "PB_F4_asymmetry_by_decile.png", "")
-plot_asymmetry(asym10, 10, "PB_F4_asymmetry_10bin_supp.png", " (supp.)")
+plot_asymmetry(asym5, 5, f"PB_F4_asymmetry_by_decile{SUFFIX}.png", "")
+plot_asymmetry(asym10, 10, f"PB_F4_asymmetry_10bin_supp{SUFFIX}.png", " (supp.)")
 
 # ---- PB_F1 coverage curve ----
 fig, axes = plt.subplots(1, 3, figsize=(13, 4.5), sharex=True, sharey=True)
@@ -96,7 +117,7 @@ for j, track in enumerate(TRACKS):
 axes[0].set_ylabel("empirical coverage")
 axes[2].legend(bbox_to_anchor=(1.02, 1), loc="upper left", fontsize=8)
 fig.suptitle("PB-F1: consensus coverage degrades with contamination", fontsize=11)
-fig.savefig(FIG_DIR / "PB_F1_coverage_curve.png", dpi=150, bbox_inches="tight")
+fig.savefig(FIG_DIR / f"PB_F1_coverage_curve{SUFFIX}.png", dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("wrote PB_F1_coverage_curve.png")
 
@@ -118,7 +139,7 @@ for j, track in enumerate(TRACKS):
 axes[0].set_ylabel("empirical coverage")
 axes[0].legend(loc="lower left", fontsize=9)
 fig.suptitle("PB-F7: LOBO split conformal restores coverage (consensus)", fontsize=11)
-fig.savefig(FIG_DIR / "PB_F7_conformal_coverage_curve.png", dpi=150, bbox_inches="tight")
+fig.savefig(FIG_DIR / f"PB_F7_conformal_coverage_curve{SUFFIX}.png", dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("wrote PB_F7_conformal_coverage_curve.png")
 
@@ -134,7 +155,7 @@ ax.set_xticks(LEVELS)
 ax.set_ylabel("width inflation factor (conformal / uncorrected)")
 ax.set_title("PB-F8: interval-width cost of conformal correction")
 ax.legend()
-fig.savefig(FIG_DIR / "PB_F8_width_inflation.png", dpi=150, bbox_inches="tight")
+fig.savefig(FIG_DIR / f"PB_F8_width_inflation{SUFFIX}.png", dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("wrote PB_F8_width_inflation.png")
 
