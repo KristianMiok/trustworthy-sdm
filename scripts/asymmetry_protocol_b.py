@@ -80,8 +80,8 @@ def main():
 
     out = REPO_ROOT / "figures"
     out.mkdir(exist_ok=True)
-    five.to_csv(out / "asymmetry_protocol_b_5bin.csv", index=False)
-    ten.to_csv(out / "asymmetry_protocol_b_10bin.csv", index=False)
+    five.to_csv(out / f"asymmetry_protocol_b_5bin_L{args.level}.csv", index=False)
+    ten.to_csv(out / f"asymmetry_protocol_b_10bin_L{args.level}.csv", index=False)
     print(f"wrote 5-bin ({len(five)} rows) and 10-bin ({len(ten)} rows), level={args.level}")
 
     # Summary: is over-prediction concentrated in LOW benchmark-suitability bins?

@@ -10,7 +10,7 @@ import pandas as pd
 
 FIG = Path("figures")
 conf = pd.read_csv(FIG / "panel_conformal_protocol_b.csv")
-asym5 = pd.read_csv(FIG / "asymmetry_protocol_b_5bin.csv")
+asym5 = pd.read_csv(FIG / "asymmetry_protocol_b_5bin_L10.csv")
 
 print("=" * 64)
 print("PROTOCOL B — HEADLINE NUMBERS")

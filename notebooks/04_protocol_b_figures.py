@@ -64,8 +64,8 @@ def short_entity(name: str) -> str:
 
 summary = pd.read_csv(FIG_DIR / "panel_summary_protocol_b.csv")
 conf = pd.read_csv(FIG_DIR / "panel_conformal_protocol_b.csv")
-asym5 = pd.read_csv(FIG_DIR / "asymmetry_protocol_b_5bin.csv")
-asym10 = pd.read_csv(FIG_DIR / "asymmetry_protocol_b_10bin.csv")
+asym5 = pd.read_csv(FIG_DIR / "asymmetry_protocol_b_5bin_L10.csv")
+asym10 = pd.read_csv(FIG_DIR / "asymmetry_protocol_b_10bin_L10.csv")
 
 ents = sorted(summary.entity.unique())
 if ENTITY_SUBSET is not None:
