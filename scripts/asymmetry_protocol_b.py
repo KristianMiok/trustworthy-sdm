@@ -1,7 +1,7 @@
 """Protocol B directional over-prediction (keystone Fig 6 analogue).
 
 Replicates asymmetry_by_benchmark_decile EXACTLY, sourcing the clean reference
-from the consensus benchmark ensemble (median across the 4 algorithms) instead
+from the consensus benchmark ensemble (mean across the 4 algorithms) instead
 of the rf/xgboost-only benchmark_for() path.
 
 For each cell: bin pixels by clean-benchmark suitability, and per bin compute
@@ -30,7 +30,7 @@ AXIS = "lowacc"
 
 def consensus_benchmark(entity: str, track: str, surfaces_root: Path) -> pd.Series:
     cell = CellID(entity, "consensus", track, axis="benchmark", level=0)
-    return load_ensemble(cell, surfaces_root).median(axis=1)
+    return load_ensemble(cell, surfaces_root).mean(axis=1)
 
 
 def asymmetry_by_benchmark_decile_consensus(entity, track, level, surfaces_root, n_bins):

@@ -2,7 +2,7 @@
 
 Replicates analyse_cell and evaluate_cell_conformal EXACTLY, with one change:
 the clean benchmark reference is the consensus benchmark ensemble
-(median across the 4 algorithms on uncontaminated data), loaded from
+(mean across the 4 algorithms on uncontaminated data), loaded from
 {entity}__consensus__{track}__benchmark__L0/, instead of the rf/xgboost-only
 benchmark_for() path.
 
@@ -36,11 +36,11 @@ AXIS = "lowacc"
 
 
 def consensus_benchmark(entity: str, track: str, surfaces_root: Path) -> pd.Series:
-    """Clean consensus reference: per-pixel median across the 4 algorithm
+    """Clean consensus reference: per-pixel mean across the 4 algorithm
     surfaces in the consensus benchmark__L0 ensemble dir."""
     cell = CellID(entity, "consensus", track, axis="benchmark", level=0)
     ens = load_ensemble(cell, surfaces_root)  # wide: subc_id x 4 algos
-    return ens.median(axis=1)
+    return ens.mean(axis=1)
 
 
 def coverage_row(entity, track, level, surfaces_root):
