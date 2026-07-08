@@ -57,10 +57,19 @@ def panel_a(ax, level: int):
     print(f"panel (a): {len(d)} corridor cells at L{level}")
 
     vmax = float(np.nanpercentile(np.abs(d["div"]), 98)) or 0.1
-    norm = TwoSlopeNorm(vmin=-vmax, vcenter=0.0, vmax=vmax)
+    # The divergence is strongly right-skewed (over-prediction dominates; only a
+    # few % of cells are negative). A symmetric palette wastes half its range on
+    # empty blue and buries the small core-deflation signal. Use an ASYMMETRIC
+    # diverging norm keyed to the actual distribution, with 0 pinned white so the
+    # over/under boundary stays truthful.
+    v = d["div"].to_numpy()
+    vmin = float(np.nanpercentile(v, 1))                        # real negative reach
+    vmax = float(np.nanpercentile(v, 95))                       # avoid the extreme + tail flattening everything
+    vmin = min(vmin, -1e-3); vmax = max(vmax, 1e-3)             # guard: keep 0 interior
+    norm = TwoSlopeNorm(vmin=vmin, vcenter=0.0, vmax=vmax)
     d = d.reindex(d["div"].abs().sort_values().index)          # strong divergence on top
     sc = ax.scatter(d.lon, d.lat, c=d["div"], cmap="RdBu_r", norm=norm,
-                    s=7, linewidths=0, alpha=0.9)
+                    s=8, linewidths=0.2, edgecolors="0.5", alpha=0.9)
     ax.set_aspect(1.0 / np.cos(np.deg2rad(float(d.lat.mean()))))
     ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
     ax.set_title(f"(a) Divergence surface (prediction \u2212 clean benchmark), L{level}",
@@ -81,8 +90,9 @@ def panel_b(ax):
         m = np.array([report[f"L{lv}"][b]["cellmean_div"]["mean"] for lv in LEVELS])
         lo = np.array([report[f"L{lv}"][b]["cellmean_div"]["lo2.5"] for lv in LEVELS])
         hi = np.array([report[f"L{lv}"][b]["cellmean_div"]["hi97.5"] for lv in LEVELS])
-        ax.errorbar(x, m, yerr=np.vstack([m - lo, hi - m]), marker="o", ms=4,
-                    lw=1.6, capsize=3, color=cmap(1.0 - mids.get(b, 0.5)), label=b)
+        ax.errorbar(x, m, yerr=np.vstack([m - lo, hi - m]), marker="o", ms=5,
+                    lw=1.8, capsize=3, color=cmap(1.0 - mids.get(b, 0.5)),
+                    markeredgecolor="0.4", markeredgewidth=0.6, label=b)
     ax.set_xticks(x); ax.set_xticklabels([f"L{lv}\n({lv}%)" for lv in LEVELS])
     ax.set_xlabel("Occurrence-data contamination")
     ax.set_ylabel("Over-prediction  (prediction \u2212 clean benchmark)")
