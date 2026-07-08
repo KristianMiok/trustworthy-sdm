@@ -1,0 +1,4 @@
+level,vs_benchmark_cov_uncorrected,vs_benchmark_cov_conformal,vs_benchmark_n,vs_reconstructed_cov_uncorrected,vs_reconstructed_cov_conformal,vs_reconstructed_n
+L3,0.893,0.947,37449,0.568,0.949,24142
+L10,0.834,0.938,37449,0.562,0.948,24142
+L20,0.776,0.932,37449,0.554,0.946,24142
