@@ -72,8 +72,7 @@ def panel_a(ax, level: int):
                     s=8, linewidths=0.2, edgecolors="0.5", alpha=0.9)
     ax.set_aspect(1.0 / np.cos(np.deg2rad(float(d.lat.mean()))))
     ax.set_xlabel("Longitude"); ax.set_ylabel("Latitude")
-    ax.set_title(f"(a) Divergence surface (prediction \u2212 clean benchmark), L{level}",
-                 fontsize=10, loc="left")
+    ax.set_title("(a)", fontsize=12, loc="left", fontweight="bold", pad=10)
     cb = plt.colorbar(sc, ax=ax, shrink=0.85, extend="both")
     cb.set_label("pred \u2212 benchmark  (>0 over, <0 under)", fontsize=8)
 
@@ -96,8 +95,7 @@ def panel_b(ax):
     ax.set_xticks(x); ax.set_xticklabels([f"L{lv}\n({lv}%)" for lv in LEVELS])
     ax.set_xlabel("Occurrence-data contamination")
     ax.set_ylabel("Over-prediction  (prediction \u2212 clean benchmark)")
-    ax.set_title("(b) Directional miscalibration by suitability band",
-                 fontsize=10, loc="left")
+    ax.set_title("(b)", fontsize=12, loc="left", fontweight="bold", pad=10)
     ax.legend(frameon=False, fontsize=7.5, title="benchmark band", title_fontsize=8)
     ax.margins(x=0.15)
 
@@ -108,13 +106,14 @@ def main() -> None:
     args = ap.parse_args()
 
     plt.rcParams.update({"font.size": 10, "font.family": "sans-serif"})
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(12.5, 5.4))
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(12.8, 5.8), constrained_layout=True)
     panel_a(axA, args.level)
     panel_b(axB)
-    fig.tight_layout()
-    fig.savefig(OUT / "fig5.pdf", dpi=300, bbox_inches="tight")
-    fig.savefig(OUT / "fig5.png", dpi=150, bbox_inches="tight")
-    print(f"wrote {OUT}/fig5.pdf")
+    # constrained_layout handles the fixed-aspect map + colorbar without clipping;
+    # do NOT combine with bbox_inches='tight' (they conflict and re-introduce clipping)
+    fig.savefig(OUT / "Fig5.png", dpi=300)   # submission drop-in
+    fig.savefig(OUT / "Fig5.pdf", dpi=300)   # vector, if JAE asks later
+    print(f"wrote {OUT}/Fig5.png (300 dpi) and {OUT}/Fig5.pdf")
 
 
 if __name__ == "__main__":
